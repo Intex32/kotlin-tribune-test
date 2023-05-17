@@ -4,7 +4,6 @@ import arrow.core.Validated
 import com.sksamuel.tribune.core.Parser
 import com.sksamuel.tribune.core.compose
 import com.sksamuel.tribune.core.filter
-import com.sksamuel.tribune.core.flatMap
 import tribune.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

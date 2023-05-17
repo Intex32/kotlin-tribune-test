@@ -2,7 +2,10 @@ package test
 
 import arrow.core.Validated
 import arrow.core.nonEmptyListOf
-import com.sksamuel.tribune.core.*
+import com.sksamuel.tribune.core.Parser
+import com.sksamuel.tribune.core.compose
+import com.sksamuel.tribune.core.filter
+import com.sksamuel.tribune.core.map
 import tribune.*
 import java.time.LocalDate
 
@@ -39,7 +42,7 @@ fun main(args: Array<String>) {
     HaPostDto(
         text = "Test Anzahl",
         start = LocalDate.now(),
-        endTimes = -2,
+        endTimes = 6,
     ).also(::endpoint)
 
     HaPostDto(

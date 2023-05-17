@@ -27,7 +27,8 @@ sealed interface ParseError<out T> {
     }.unit()
 }
 
-data class TerminalParseError<T>(
+@JvmInline
+value class TerminalParseError<T>(
     val error: T,
 ) : ParseError<T> {
     companion object {
