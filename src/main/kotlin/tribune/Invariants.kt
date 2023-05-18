@@ -9,7 +9,7 @@ import com.sksamuel.tribune.core.map
  * end has to be greater or equal start.
  */
 @JvmInline
-value class OrderedClosedRange<T : Comparable<T>>(
+value class OrderedClosedRange<T : Comparable<T>> private constructor(
     val value: ClosedRange<T>,
 ) {
     companion object {

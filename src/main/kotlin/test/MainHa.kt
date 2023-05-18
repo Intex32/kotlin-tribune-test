@@ -47,9 +47,22 @@ fun main(args: Array<String>) {
         end = LocalDate.now().plusDays(2),
         endTimes = 5,
     ).also(::endpoint)
+
+    internalService()
 }
 
-fun endpoint(input: HaPostDto) {
+private fun internalService() {
+    HaCreateCmd(
+        text = NonBlankString.fromUnsafe("  "),
+        end = HaCreateCmd.End.Date(
+            zeitraum = OrderedClosedRange.parser<LocalDate>()
+                .parse(LocalDate.now()..LocalDate.now().plusDays(-2))
+                .claimValid()
+        ),
+    )
+}
+
+private fun endpoint(input: HaPostDto) {
     val haEndDateParser = Parser.from<HaPostDto>()
         .filter({ it.end != null }) { "End is null" }
         .wrapTerminalError()

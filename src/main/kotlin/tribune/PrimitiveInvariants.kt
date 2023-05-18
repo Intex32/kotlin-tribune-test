@@ -11,7 +11,7 @@ value class NonBlankString private constructor(
     companion object : ParserCompanion<String, NonBlankString, String> {
         override val parser = Parser.from<String>()
             .notBlank { "cannot be blank" }
-            .map { NonBlankString(it) }
+            .map(::NonBlankString)
     }
 }
 
@@ -24,7 +24,7 @@ value class DisplayName private constructor(
 
         override val parser = Parser.compose(
             Parser.from<String>().notBlank { "cannot be blank" },
-            Parser.from<String>().length({ it <= MAX_LENGTH }) { "max length is $MAX_LENGTH" },
+            Parser.from<String>().length({ it <= MAX_LENGTH }) { "max length is $MAX_LENGTH; actual length is ${it.length}" },
         ) { s, _ -> s }.map(::DisplayName)
     }
 }
@@ -32,11 +32,11 @@ value class DisplayName private constructor(
 @JvmInline
 value class Email private constructor(val value: String) {
     companion object : ParserCompanion<String, Email, String> {
-        val REGEX = Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}\$")
+        val REGEX = Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}\$") //TODO: fix regex
 
         override val parser = Parser.from<String>()
             .filter({ REGEX.matches(it) }) { "does not match regex pattern" }
-            .map { Email(it) }
+            .map(::Email)
     }
 }
 
@@ -45,7 +45,7 @@ value class NonNegInt private constructor(val value: Int) {
     companion object : ParserCompanion<Int, NonNegInt, String> {
         override val parser = Parser.from<Int>()
             .nonNegative { "cannot be negative" }
-            .map { NonNegInt(it) }
+            .map(::NonNegInt)
 
         operator fun invoke(x: UInt) = NonNegInt(x.toInt())
     }

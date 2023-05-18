@@ -3,6 +3,8 @@ package tribune
 import arrow.core.*
 import com.sksamuel.tribune.core.Parser
 import com.sksamuel.tribune.core.notNull
+import java.lang.RuntimeException
+import kotlin.reflect.KClass
 
 /**
  * Companion for classes that represent parsed results.
@@ -14,6 +16,15 @@ interface ParserCompanion<I, A, E> {
     val parser: Parser<I, A, E>
     operator fun invoke(x: I) = parser.parse(x)
 }
+
+inline fun <I, reified A, E> ParserCompanion<I, A, E>.fromUnsafe(x: I): A =
+    parser.parse(x).claimValid()
+
+//abstract class ParserCompanion2<I, A, E>(
+//    parser: Parser<I, A, E>,
+//) : Parser<I, A, E> by parser {
+//    operator fun invoke(x: I) = this.parse(x)
+//}
 
 /**
  * Widens [I] to additionally allow null by the type system.
@@ -59,12 +70,13 @@ fun <I, A, E, A2> Parser<I, A, E>.tryParsers(
         when (parseResults.count { it.isValid }) {
             1 -> parseResults.first { it.isValid }
             0 -> {
-                if(noValidError == null) {
+                if (noValidError == null) {
                     val invalids = parseResults.filterIsInstance<Invalid<NonEmptyList<E>>>()
                     Invalid(Nel.fromListUnsafe(invalids.flatMap { it.value }))
                 } else
                     noValidError().invalidNel()
             }
+
             else -> {
                 val valids = parseResults.filterIsInstance<Valid<A2>>()
                     .map { it.value }
@@ -97,3 +109,34 @@ fun <I, A, E, A2> Parser<I, A, E>.tryParsers(
 fun <I, A, A2, E> Parser<I, A, E>.andThen(parser: Parser<A, A2, E>): Parser<I, A2, E> = Parser { i ->
     parse(i).andThen { a -> parser.parse(a) }
 }
+
+data class FalseClaimParseException @PublishedApi internal constructor(
+    val target: KClass<*>,
+    val errors: Nel<*>,
+    override val message: String = "invalid parse result was claimed to be valid",
+) : RuntimeException()
+
+/**
+ * Folds [Validated].
+ * Throws [FalseClaimParseException] if [Invalid].
+ */
+inline fun <E, reified A> ValidatedNel<E, A>.claimValid(): A =
+    valueOr {
+        throw FalseClaimParseException(
+            A::class,
+            errors = it,
+        )
+    }
+
+/**
+ * @see claimValid
+ */
+@JvmName("claimValid2")
+inline fun <E, reified A> ValidatedNel<ParseError<E>, A>.claimValid(): A =
+    valueOr { errors ->
+        throw FalseClaimParseException(
+            target = A::class,
+            errors = errors,
+            message = "invalid parse result was claimed to be valid; errors: ${A::class.simpleName}: " + errors.joinToString(";\n", "[", "]") { it.toDisplayString() }
+        )
+    }

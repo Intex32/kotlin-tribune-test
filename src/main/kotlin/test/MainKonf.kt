@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
     endpoint(input2)
 }
 
-fun endpoint(input: KonfPostDto) {
+private fun endpoint(input: KonfPostDto) {
     val seife = @OptIn(DeliberatelyValidated::class) Parser.from<KonfPostDto>()
         .filter({ x -> x.magicNumber != 42}) { TerminalParseError("cannot be 42") }
         .declareValidated()

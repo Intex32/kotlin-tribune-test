@@ -6,6 +6,7 @@ import tribune.*
 
 data class PersonInput(
         val name: String,
+        val email: String,
         val address: AddressInput,
 )
 
@@ -22,6 +23,7 @@ data class StreetInput(
 
 data class Person(
         val name: DisplayName,
+        val email: Email,
         val address: Address,
 )
 
@@ -48,12 +50,14 @@ fun main() {
     )
     val personParser: EParser<PersonInput, Person, String> = Parser.compose(
             DisplayName.parser widenByProp PersonInput::name,
+            Email.parser widenByProp PersonInput::email,
             addressParser widenByProp PersonInput::address,
             ::Person,
     )
 
     val personInput = PersonInput(
-            name = "hans joachiam walter luca ben daniel schneesturm sengelmann",
+            name = "John Michael Patrick George Smith",
+            email = "barryba@gmail.com",
             address = AddressInput(
                     country = "",
                     street = StreetInput(
