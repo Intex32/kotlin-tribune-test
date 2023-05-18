@@ -47,15 +47,22 @@ data class FocussedError<T>(
 //    val subErrors: Nel<ParseError<T>>,
 //) : ParseError<T>
 
-infix fun <I, A, E, I2> Parser<I, A, E>.focusByProp(i: KProperty1<I2, I>): Parser<I2, A, ParseError<E>> = Parser { x ->
+infix fun <I, A, E, I2> Parser<I, A, ParseError<E>>.focusByProp(i: KProperty1<I2, I>): Parser<I2, A, ParseError<E>> = Parser { x ->
     parse(i.get(x))
         .mapLeft { errors ->
             errors.map { error ->
-                FocussedError(field = i.name, error = TerminalParseError(error))
+                FocussedError(field = i.name, error = error)
             }
         }
 }
 
+@JvmName("wrapAndFocusByProp")
+infix fun <I, A, E, I2> Parser<I, A, E>.focusByProp(i: KProperty1<I2, I>): Parser<I2, A, ParseError<E>> =
+    wrapTerminalError()
+        .focusByProp(i)
+
+fun <I, E, I2> Parser.Companion.focussedParserByProp(i: KProperty1<I2, I>): Parser<I2, I, ParseError<E>> =
+    from<I>().focusByProp(i)
 fun <I, A, E> Parser<I, A, ParseError<E>>.focusTerminalError(
     property0: KProperty1<I, *>,
     vararg properties: KProperty1<I, *>

@@ -1,6 +1,5 @@
 package test
 
-import arrow.core.Validated
 import arrow.core.nonEmptyListOf
 import com.sksamuel.tribune.core.Parser
 import com.sksamuel.tribune.core.compose
@@ -83,8 +82,5 @@ fun endpoint(input: HaPostDto) {
             ::HaCreateCmd,
         )
 
-    when (val parsed = haParser.parse(input)) {
-        is Validated.Valid -> println(parsed.value)
-        is Validated.Invalid -> println(parsed.value.joinToString("; ") { it.toDisplayString() })
-    }
+    printParseResult(haParser.parse(input))
 }
