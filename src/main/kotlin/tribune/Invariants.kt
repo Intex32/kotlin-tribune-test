@@ -4,6 +4,10 @@ import com.sksamuel.tribune.core.Parser
 import com.sksamuel.tribune.core.filter
 import com.sksamuel.tribune.core.map
 
+/**
+ * [ClosedRange] with constraint that
+ * end has to be greater or equal start.
+ */
 @JvmInline
 value class OrderedClosedRange<T : Comparable<T>>(
     val value: ClosedRange<T>,

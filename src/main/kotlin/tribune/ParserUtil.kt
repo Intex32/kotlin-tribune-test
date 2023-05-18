@@ -4,13 +4,19 @@ import arrow.core.*
 import com.sksamuel.tribune.core.Parser
 import com.sksamuel.tribune.core.notNull
 
+/**
+ * Companion for classes that represent parsed results.
+ * Facilitates parsing through providing override of [invoke]
+ * and promotes a common style.
+ * The subclass has to implement the parsing logic.
+ */
 interface ParserCompanion<I, A, E> {
     val parser: Parser<I, A, E>
     operator fun invoke(x: I) = parser.parse(x)
 }
 
 /**
- * Allows that the input [I] of the Parser may be nullable.
+ * Widens [I] to additionally allow null by the type system.
  * Once a null value is received, an error [e] will be passed forward.
  * It widens [I] in the sens that is also accepts nullable values.
  */
@@ -25,6 +31,9 @@ fun <I : Any, A, E> Parser<I, A, E>.widenByFailOnNull(e: () -> E): Parser<I?, A,
         })
 }
 
+/**
+ * @see widenByFailOnNull
+ */
 fun <I : Any, A> Parser<I, A, String>.widenByFailOnNull(): Parser<I?, A, String> =
     widenByFailOnNull { "cannot be null" }
 
@@ -81,6 +90,10 @@ fun <I, A, E, A2> Parser<I, A, E>.tryParsers(
 ): Parser<I, A2, E> =
     tryParsers(errAmbiguous = errAmbiguous, noValidError = noValidError, parsers.head, *parsers.tail.toTypedArray())
 
+/**
+ * If parsing [this] was successful, [parser] is subsequently chained and run.
+ * If parsing [this] wasn't successful [parser] will never be executed.
+ */
 fun <I, A, A2, E> Parser<I, A, E>.andThen(parser: Parser<A, A2, E>): Parser<I, A2, E> = Parser { i ->
     parse(i).andThen { a -> parser.parse(a) }
 }

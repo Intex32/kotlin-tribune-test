@@ -31,24 +31,24 @@ data class Address(
 )
 
 data class Street(
-        val name: NonBlankString,
-        val houseNumber: Amount,
+    val name: NonBlankString,
+    val houseNumber: NonNegInt,
 )
 
 fun main() {
     val streetParser: EParser<StreetInput, Street, String> = Parser.compose(
-            NonBlankString.parser focusByProp StreetInput::name,
-            Amount.parser focusByProp StreetInput::houseNumber,
+            NonBlankString.parser widenByProp StreetInput::name,
+            NonNegInt.parser widenByProp StreetInput::houseNumber,
             ::Street,
     )
     val addressParser: EParser<AddressInput, Address, String> = Parser.compose(
-            NonBlankString.parser focusByProp AddressInput::country,
-            streetParser focusByProp AddressInput::street,
+            NonBlankString.parser widenByProp AddressInput::country,
+            streetParser widenByProp AddressInput::street,
             ::Address,
     )
     val personParser: EParser<PersonInput, Person, String> = Parser.compose(
-            DisplayName.parser focusByProp PersonInput::name,
-            addressParser focusByProp PersonInput::address,
+            DisplayName.parser widenByProp PersonInput::name,
+            addressParser widenByProp PersonInput::address,
             ::Person,
     )
 

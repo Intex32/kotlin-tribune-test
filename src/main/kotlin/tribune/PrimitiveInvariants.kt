@@ -41,12 +41,12 @@ value class Email private constructor(val value: String) {
 }
 
 @JvmInline
-value class Amount private constructor(val value: Int) {
-    companion object : ParserCompanion<Int, Amount, String> {
+value class NonNegInt private constructor(val value: Int) {
+    companion object : ParserCompanion<Int, NonNegInt, String> {
         override val parser = Parser.from<Int>()
             .nonNegative { "cannot be negative" }
-            .map { Amount(it) }
+            .map { NonNegInt(it) }
 
-        operator fun invoke(x: UInt) = Amount(x.toInt())
+        operator fun invoke(x: UInt) = NonNegInt(x.toInt())
     }
 }

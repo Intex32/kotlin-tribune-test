@@ -55,16 +55,16 @@ fun endpoint(input: KonfPostDto) {
         .filter({ x -> x.magicNumber != 42}) { TerminalParseError("cannot be 42") }
         .declareValidated()
 
-    val sdf: Parser<KonfPostDto, Int, ParseError<String>> = Parser.from<Int>().focusByProp<Int, Int, String, KonfPostDto>(KonfPostDto::magicNumber)
+    val sdf: Parser<KonfPostDto, Int, ParseError<String>> = Parser.from<Int>().widenByProp<Int, Int, String, KonfPostDto>(KonfPostDto::magicNumber)
 
     val konfParser: EParser<KonfPostDto, ValidatedByParser<KonfCreateCmd>, String> = Parser.compose(
-        DisplayName.parser focusByProp KonfPostDto::name,
-        NonBlankString.parser focusByProp KonfPostDto::text,
-        Parser.focussedParserByProp(KonfPostDto::magicNumber), // short for Parser.from<Int>() focusByProp KonfPostDto::magicNumber,
+        DisplayName.parser widenByProp KonfPostDto::name,
+        NonBlankString.parser widenByProp KonfPostDto::text,
+        Parser.fromAndWidenByProp(KonfPostDto::magicNumber), // short for Parser.from<Int>() focusByProp KonfPostDto::magicNumber,
         OrderedClosedRange.parser<LocalDate>()
             .contramap<KonfPostDto> { it.start..it.end }
             .wrapTerminalError()
-            .focusTerminalError(KonfPostDto::start, KonfPostDto::end),
+            .focusErrorsByProps(KonfPostDto::start, KonfPostDto::end),
         ::KonfCreateCmd,
     ).andThen(
         KonfCreateCmd.parser

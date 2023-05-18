@@ -1,10 +1,7 @@
 package test
 
 import arrow.core.nonEmptyListOf
-import com.sksamuel.tribune.core.Parser
-import com.sksamuel.tribune.core.compose
-import com.sksamuel.tribune.core.filter
-import com.sksamuel.tribune.core.map
+import com.sksamuel.tribune.core.*
 import tribune.*
 import java.time.LocalDate
 
@@ -26,7 +23,7 @@ data class HaCreateCmd(
 
         data class CountIntoFuture(
             val start: LocalDate,
-            val times: Amount,
+            val times: NonNegInt,
         ) : End
     }
 }
@@ -60,20 +57,20 @@ fun endpoint(input: HaPostDto) {
             OrderedClosedRange.parser<LocalDate>()
                 .contramap<HaPostDto> { it.start..it.end!! }
                 .wrapTerminalError()
-                .focusTerminalError(HaPostDto::start, HaPostDto::end)
+                .focusErrorsByProps(HaPostDto::start, HaPostDto::end)
                 .map { HaCreateCmd.End.Date(it) }
         )
 
     val haEndAnzahlParser: EParser<HaPostDto, HaCreateCmd.End.CountIntoFuture, String> = Parser.compose(
         Parser.from<LocalDate>().contramap<HaPostDto> { it.start }.wrapTerminalError(),
-        Amount.parser
+        NonNegInt.parser
             .widenByFailOnNull()
-            .focusByProp(HaPostDto::endTimes),
+            .widenByProp(HaPostDto::endTimes),
         HaCreateCmd.End::CountIntoFuture,
     )
     val haParser: EParser<HaPostDto, HaCreateCmd, String> =
         Parser.compose(
-            NonBlankString.parser focusByProp HaPostDto::text,
+            NonBlankString.parser widenByProp HaPostDto::text,
             Parser.from<HaPostDto>().tryParsers(
                 parsers = nonEmptyListOf(haEndDateParser, haEndAnzahlParser),
                 errAmbiguous = { TerminalParseError("mehrdeutig welcher Modus für Enddatum") },
