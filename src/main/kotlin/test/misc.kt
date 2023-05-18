@@ -9,6 +9,7 @@ fun main() {
 }
 
 private fun unsafe() {
-    DisplayName.fromUnsafe("test")
+    DisplayName.fromUnsafe("  test ")
+        .also { println(it) }
     NonBlankString.fromUnsafe("  ")
 }

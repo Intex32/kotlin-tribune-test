@@ -106,9 +106,15 @@ fun <I, A, E, A2> Parser<I, A, E>.tryParsers(
  * If parsing [this] was successful, [parser] is subsequently chained and run.
  * If parsing [this] wasn't successful [parser] will never be executed.
  */
-fun <I, A, A2, E> Parser<I, A, E>.andThen(parser: Parser<A, A2, E>): Parser<I, A2, E> = Parser { i ->
-    parse(i).andThen { a -> parser.parse(a) }
+inline infix fun <I, A, A2, E> Parser<I, A, E>.andThen(crossinline parser: () -> Parser<A, A2, E>): Parser<I, A2, E> = Parser { i ->
+    parse(i).andThen { a -> parser().parse(a) }
 }
+
+/**
+ * @see andThen
+ */
+infix fun <I, A, A2, E> Parser<I, A, E>.andThen(parser: Parser<A, A2, E>): Parser<I, A2, E> =
+    andThen { parser }
 
 data class FalseClaimParseException @PublishedApi internal constructor(
     val target: KClass<*>,

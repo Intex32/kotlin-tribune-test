@@ -22,10 +22,16 @@ value class DisplayName private constructor(
     companion object : ParserCompanion<String, DisplayName, String> {
         const val MAX_LENGTH = 20
 
-        override val parser = Parser.compose(
-            Parser.from<String>().notBlank { "cannot be blank" },
-            Parser.from<String>().length({ it <= MAX_LENGTH }) { "max length is $MAX_LENGTH; actual length is ${it.length}" },
-        ) { s, _ -> s }.map(::DisplayName)
+        override val parser = Parser
+            .from<String>()
+            .map(String::trim)
+            .andThen {
+                Parser.compose(
+                    Parser.from<String>().notBlank { "cannot be blank" },
+                    Parser.from<String>()
+                        .length({ it <= MAX_LENGTH }) { "max length is $MAX_LENGTH; actual length is ${it.length}" },
+                ) { s, _ -> s }.map(::DisplayName)
+            }
     }
 }
 
