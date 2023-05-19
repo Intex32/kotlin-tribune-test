@@ -2,7 +2,6 @@ package tribune
 
 import arrow.core.*
 import com.sksamuel.tribune.core.*
-import java.lang.RuntimeException
 import kotlin.reflect.KClass
 
 /**
@@ -147,13 +146,6 @@ inline fun <E, reified A> ValidatedNel<ParseError<E>, A>.claimValid(): A =
     }
 
 /**
- * No matter what the input [I] is,
- * the output will always exactly be [value].
- */
-fun <I, A> Parser.Companion.exact(value: A): Parser<I, A, Nothing> =
-    from<I>().map { value }
-
-/**
  * Makes null as input a valid value.
  * If input is null, the default [value] is used.
  * Thus, the resulting [Parser] produces a non-null output.
@@ -161,3 +153,29 @@ fun <I, A> Parser.Companion.exact(value: A): Parser<I, A, Nothing> =
 fun <I : Any, A, E> Parser<I, A, E>.widenByNullWithDefault(default: () -> A): Parser<I?, A, E> = this
     .allowNulls()
     .withDefault(default)
+
+fun <I, A, E> Parser<I, A, E>.compose(
+    parser0: Parser<I, Unit, E>,
+    vararg parsers: Parser<I, Unit, E>,
+): Parser<I, A, E> = Parser { i ->
+    val first = parser0.parse(i)
+    parsers.toList().fold(first) { acc, next ->
+        acc.zip(next.parse(i)) { _, _ -> }
+    }
+    parse(i)
+}
+
+/**
+ * still under development
+ */
+fun <I, A, E> Parser<I, A, E>.compose(
+    from: Parser<I, A, Nothing>,
+    parser0: (Parser<I, A, E>) -> Parser<I, Unit, E>,
+    vararg parsers: (Parser<I, A, E>) -> Parser<I, Unit, E>,
+): Parser<I, A, E> = Parser { i ->
+    val first = parser0(from).parse(i)
+    parsers.toList().fold(first) { acc, next ->
+        acc.zip(next(from).parse(i)) { _, _ -> }
+    }
+    parse(i)
+}

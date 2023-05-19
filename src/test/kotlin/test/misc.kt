@@ -1,10 +1,16 @@
 package test
 
+import arrow.core.Invalid
+import arrow.core.Nel
 import arrow.core.Valid
 import arrow.core.ValidatedNel
 import com.sksamuel.tribune.core.*
+import com.sksamuel.tribune.core.strings.length
+import com.sksamuel.tribune.core.strings.notBlank
 import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -31,6 +37,32 @@ private data class Book(
     val summary: NonBlankString,
 )
 
+@JvmInline
+private value class ConfinedTypeWithManyConstraints private constructor(
+    val value: String,
+) {
+    companion object : ParserCompanion<String, ConfinedTypeWithManyConstraints, String> {
+        override val parser = Parser
+            .fromAndMap<String, _> { it.trim() }
+            .andThen {
+                Parser.compose(
+                    Parser.from<String>().notBlank { "not blank" },
+                    Parser.from<String>().filter({ it.startsWith("a")}) { "starts with a" },
+                    Parser.from<String>().filter({ it.endsWith("z")}) { "ends with z" },
+                    Parser.from<String>().length({ it <= 3 }) { "max length 3" },
+                ) { s, _, _, _ -> ConfinedTypeWithManyConstraints(s) }
+            }
+            /*.compose<String, String, String>(
+                Parser.from(),
+                { it.notBlank { "not blank" }.map {} },
+                { it.filter({ it.startsWith("a") }) { "starts with a" }.map { } },
+                { it.filter({ it.endsWith("z") }) { "ends with z" }.map { } },
+                { it.length({ it <= 3 }) { "max length 3" }.map { } },
+            )
+            .map(::ConfinedTypeWithManyConstraints)*/
+    }
+}
+
 class MiscTests : AnnotationSpec() {
 
     @Test
@@ -49,6 +81,14 @@ class MiscTests : AnnotationSpec() {
             .fromUnsafe(" test ")
             .value
             .shouldBeEqual("test")
+    }
+
+    @Test
+    fun `confined type returns all accumulated errors`() {
+        ConfinedTypeWithManyConstraints("meso")
+            .shouldBeInstanceOf<Invalid<Nel<*>>>()
+            .value
+            .shouldHaveSize(3)
     }
 
     @Test

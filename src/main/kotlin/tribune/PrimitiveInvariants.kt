@@ -27,10 +27,11 @@ value class DisplayName private constructor(
             .map(String::trim)
             .andThen {
                 Parser.compose(
-                    Parser.from<String>().notBlank { "cannot be blank" },
+                    Parser.from<String>()
+                        .notBlank { "cannot be blank" },
                     Parser.from<String>()
                         .length({ it <= MAX_LENGTH }) { "max length is $MAX_LENGTH; actual length is ${it.length}" },
-                ) { s, _ -> s }.map(::DisplayName)
+                ) { s, _ -> DisplayName(s) }
             }
     }
 }
@@ -38,7 +39,7 @@ value class DisplayName private constructor(
 @JvmInline
 value class Email private constructor(val value: String) {
     companion object : ParserCompanion<String, Email, String> {
-        val REGEX = Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}\$") //TODO: fix regex
+        val REGEX = Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}\$", RegexOption.IGNORE_CASE)
 
         override val parser = Parser.from<String>()
             .filter({ REGEX.matches(it) }) { "does not match regex pattern" }
