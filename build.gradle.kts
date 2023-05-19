@@ -12,6 +12,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.6.2")
+
     implementation("com.sksamuel.tribune:tribune-ktor-jvm:1.2.4")
     implementation("com.sksamuel.tribune:tribune-core-jvm:1.2.4")
     implementation("com.sksamuel.tribune:tribune-datetime:1.2.4")
@@ -29,8 +32,4 @@ tasks.test {
 
 kotlin {
     jvmToolchain(11)
-}
-
-application {
-    mainClass.set("MainKt")
 }

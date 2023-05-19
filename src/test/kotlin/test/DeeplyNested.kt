@@ -5,14 +5,14 @@ import com.sksamuel.tribune.core.compose
 import tribune.*
 
 data class PersonInput(
-        val name: String,
-        val email: String,
-        val address: AddressInput,
+    val name: String,
+    val email: String,
+    val address: AddressInput,
 )
 
 data class AddressInput(
-        val country: String,
-        val street: StreetInput,
+    val country: String,
+    val street: StreetInput,
 )
 
 data class StreetInput(
@@ -22,14 +22,14 @@ data class StreetInput(
 
 
 data class Person(
-        val name: DisplayName,
-        val email: Email,
-        val address: Address,
+    val name: DisplayName,
+    val email: Email,
+    val address: Address,
 )
 
 data class Address(
-        val country: NonBlankString,
-        val street: Street,
+    val country: NonBlankString,
+    val street: Street,
 )
 
 data class Street(
@@ -56,15 +56,15 @@ fun main() {
     )
 
     val personInput = PersonInput(
-            name = "John Michael Patrick George Smith",
-            email = "barryba@gmail.com",
-            address = AddressInput(
-                    country = "",
-                    street = StreetInput(
-                            name = "Rosenstrase",
-                            houseNumber = -2,
-                    ),
+        name = "John Michael Patrick George Smith",
+        email = "barryba@gmail.com",
+        address = AddressInput(
+            country = "",
+            street = StreetInput(
+                name = "Rosenstrase",
+                houseNumber = -2,
             ),
+        ),
     )
     val parsedPerson = personParser.parse(personInput)
     printParseResult(parsedPerson)

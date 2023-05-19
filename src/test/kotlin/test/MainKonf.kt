@@ -30,6 +30,15 @@ data class KonfCreateCmd(
     }
 }
 
+private fun internalService() {
+    KonfCreateCmd(
+        name = DisplayName("test").claimValid(),
+        text = NonBlankString("test").claimValid(),
+        magicNumber = 42,
+        zeitraum = OrderedClosedRange.parser<LocalDate>().parse(LocalDate.now()..LocalDate.now()).claimValid(),
+    )
+}
+
 fun main(args: Array<String>) {
     val input = KonfPostDto(
         name = "                                                                                                ",
@@ -54,8 +63,6 @@ private fun endpoint(input: KonfPostDto) {
     val seife = @OptIn(DeliberatelyValidated::class) Parser.from<KonfPostDto>()
         .filter({ x -> x.magicNumber != 42}) { TerminalParseError("cannot be 42") }
         .declareValidated()
-
-    val sdf: Parser<KonfPostDto, Int, ParseError<String>> = Parser.from<Int>().widenByProp<Int, Int, String, KonfPostDto>(KonfPostDto::magicNumber)
 
     val konfParser: EParser<KonfPostDto, ValidatedByParser<KonfCreateCmd>, String> = Parser.compose(
         DisplayName.parser widenByProp KonfPostDto::name,

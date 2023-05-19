@@ -1,8 +1,7 @@
 package tribune
 
 import arrow.core.*
-import com.sksamuel.tribune.core.Parser
-import com.sksamuel.tribune.core.notNull
+import com.sksamuel.tribune.core.*
 import java.lang.RuntimeException
 import kotlin.reflect.KClass
 
@@ -31,7 +30,7 @@ inline fun <I, reified A, E> ParserCompanion<I, A, E>.fromUnsafe(x: I): A =
  * Once a null value is received, an error [e] will be passed forward.
  * It widens [I] in the sens that is also accepts nullable values.
  */
-fun <I : Any, A, E> Parser<I, A, E>.widenByFailOnNull(e: () -> E): Parser<I?, A, E> = Parser { x ->
+fun <I : Any, A, E> Parser<I, A, E>.widenByNullAndFail(e: () -> E): Parser<I?, A, E> = Parser { x ->
     Parser.from<I?>()
         .notNull { e() }
         .parse(x)
@@ -43,10 +42,10 @@ fun <I : Any, A, E> Parser<I, A, E>.widenByFailOnNull(e: () -> E): Parser<I?, A,
 }
 
 /**
- * @see widenByFailOnNull
+ * @see widenByNullAndFail
  */
-fun <I : Any, A> Parser<I, A, String>.widenByFailOnNull(): Parser<I?, A, String> =
-    widenByFailOnNull { "cannot be null" }
+fun <I : Any, A> Parser<I, A, String>.widenByNullAndFail(): Parser<I?, A, String> =
+    widenByNullAndFail { "cannot be null" }
 
 /**
  * Tries all the parsers on [this].
@@ -127,10 +126,10 @@ data class FalseClaimParseException @PublishedApi internal constructor(
  * Throws [FalseClaimParseException] if [Invalid].
  */
 inline fun <E, reified A> ValidatedNel<E, A>.claimValid(): A =
-    valueOr {
+    valueOr { errors ->
         throw FalseClaimParseException(
             A::class,
-            errors = it,
+            errors = errors,
         )
     }
 
@@ -146,3 +145,19 @@ inline fun <E, reified A> ValidatedNel<ParseError<E>, A>.claimValid(): A =
             message = "invalid parse result was claimed to be valid; errors: ${A::class.simpleName}: " + errors.joinToString(";\n", "[", "]") { it.toDisplayString() }
         )
     }
+
+/**
+ * No matter what the input [I] is,
+ * the output will always exactly be [value].
+ */
+fun <I, A> Parser.Companion.exact(value: A): Parser<I, A, Nothing> =
+    from<I>().map { value }
+
+/**
+ * Makes null as input a valid value.
+ * If input is null, the default [value] is used.
+ * Thus, the resulting [Parser] produces a non-null output.
+ */
+fun <I : Any, A, E> Parser<I, A, E>.widenByNullWithDefault(default: () -> A): Parser<I?, A, E> = this
+    .allowNulls()
+    .withDefault(default)

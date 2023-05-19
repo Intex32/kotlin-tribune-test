@@ -6,6 +6,7 @@ import tribune.*
 import java.time.LocalDate
 
 data class HaPostDto(
+    val authorId: Long,
     val text: String,
     val start: LocalDate = LocalDate.now(),
     val end: LocalDate? = null,
@@ -13,6 +14,7 @@ data class HaPostDto(
 )
 
 data class HaCreateCmd(
+    val authorId: Long,
     val text: NonBlankString,
     val end: End,
 ) {
@@ -30,18 +32,21 @@ data class HaCreateCmd(
 
 fun main(args: Array<String>) {
     HaPostDto(
+        authorId = 32,
         text = "  ",
         start = LocalDate.now(),
         end = LocalDate.now().plusDays(-2),
     ).also(::endpoint)
 
     HaPostDto(
+        authorId = 32,
         text = "Test Anzahl",
         start = LocalDate.now(),
         endTimes = 6,
     ).also(::endpoint)
 
     HaPostDto(
+        authorId = 32,
         text = "TEST",
         start = LocalDate.now(),
         end = LocalDate.now().plusDays(2),
@@ -53,6 +58,7 @@ fun main(args: Array<String>) {
 
 private fun internalService() {
     HaCreateCmd(
+        authorId = 23,
         text = NonBlankString.fromUnsafe("  "),
         end = HaCreateCmd.End.Date(
             zeitraum = OrderedClosedRange.parser<LocalDate>()
@@ -77,12 +83,13 @@ private fun endpoint(input: HaPostDto) {
     val haEndAnzahlParser: EParser<HaPostDto, HaCreateCmd.End.CountIntoFuture, String> = Parser.compose(
         Parser.from<LocalDate>().contramap<HaPostDto> { it.start }.wrapTerminalError(),
         NonNegInt.parser
-            .widenByFailOnNull()
+            .widenByNullAndFail()
             .widenByProp(HaPostDto::endTimes),
         HaCreateCmd.End::CountIntoFuture,
     )
     val haParser: EParser<HaPostDto, HaCreateCmd, String> =
         Parser.compose(
+            Parser.fromAndWidenByProp(HaPostDto::authorId),
             NonBlankString.parser widenByProp HaPostDto::text,
             Parser.from<HaPostDto>().tryParsers(
                 parsers = nonEmptyListOf(haEndDateParser, haEndAnzahlParser),
