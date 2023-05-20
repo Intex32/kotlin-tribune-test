@@ -1,9 +1,7 @@
 package test
 
-import arrow.core.Invalid
-import arrow.core.Nel
-import arrow.core.Valid
-import arrow.core.ValidatedNel
+import arrow.core.*
+import arrow.core.continuations.either
 import com.sksamuel.tribune.core.*
 import com.sksamuel.tribune.core.strings.length
 import com.sksamuel.tribune.core.strings.notBlank
@@ -131,7 +129,7 @@ class MiscTests : AnnotationSpec() {
             genre = "thriller",
         ).let(parser::parse).apply {
             shouldBeTypeOf<Valid<Book>>()
-            value.summary.value shouldBeEqual hardcodedSummary
+            value.summary shouldBeEqual hardcodedSummary
         }
 
         BookInput(
@@ -139,8 +137,54 @@ class MiscTests : AnnotationSpec() {
             genre = null,
         ).let(parser::parse).apply {
             shouldBeTypeOf<Valid<Book>>()
-            value.genre.value shouldBeEqual defaultGenre
+            value.genre shouldBeEqual defaultGenre
         }
+    }
+
+    @Test
+    suspend fun `flat zip and accumulate`() {
+        either {
+            val a: ValidatedNel<String, String> = "meso".validNel()
+            val b: ValidatedNel<String, String> = "merism".validNel()
+
+            ensureAllValid(a, b)
+
+            a.value
+            b.value
+            //c.value // does not compile
+
+            a.value + b.value
+        } shouldBeEqual "mesomerism".right()
+    }
+
+    @Test
+    suspend fun `double flat zip and accumulate`() {
+        either {
+            val a: ValidatedNel<String, String> = "fro".validNel()
+            val b: ValidatedNel<String, String> = "ma".validNel()
+            val c: ValidatedNel<String, String> = "ge".validNel()
+
+            ensureAllValid(a, b)
+            a.value
+            b.value
+
+            ensureAllValid(a, c)
+            c.value
+
+            a.value + b.value + c.value
+        } shouldBeEqual "fromage".right()
+    }
+
+    @Test
+    suspend fun `flat zip and accumulate fail`() {
+        either {
+            val a: ValidatedNel<String, String> = "fromage".validNel()
+            val b: ValidatedNel<String, String> = Invalid("error".nel())
+
+            ensureAllValid(a, b)
+
+            a.value + b.value
+        } shouldBeEqual "error".nel().left()
     }
 
 }
