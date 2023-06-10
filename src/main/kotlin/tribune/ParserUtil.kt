@@ -46,6 +46,15 @@ fun <I : Any, A, E> Parser<I, A, E>.widenByNullAndFail(e: () -> E): Parser<I?, A
 fun <I : Any, A> Parser<I, A, String>.widenByNullAndFail(): Parser<I?, A, String> =
     widenByNullAndFail { "cannot be null" }
 
+fun <I, A, E> Parser<I, A, E>.widenByOption(): Parser<Option<I>, Option<A>, E> = Parser { optionI ->
+    optionI.fold({
+        Validated.Valid(None)
+    }, {
+        this@widenByOption.parse(it)
+            .map(::Some)
+    })
+}
+
 /**
  * Tries all the parsers on [this].
  * Between three cases is distinguished:
