@@ -84,3 +84,19 @@ suspend inline fun <ERROR, reified A, reified B, reified C, reified D> EffectSco
     }
     ensureAllValidInternal(nonEmptyListOf(a, b, c, d), ::identity)
 }
+
+@OptIn(ExperimentalContracts::class)
+suspend inline fun <ERROR, ACC_ERROR, reified A, reified B, reified C, reified D, reified E> EffectScope<ACC_ERROR>.ensureAllValid(a: ValidatedNel<ERROR, A>, b: ValidatedNel<ERROR, B>, c: ValidatedNel<ERROR, C>, d: ValidatedNel<ERROR, D>, e: ValidatedNel<ERROR, E>, noinline mapAccErrors: (Nel<ERROR>) -> ACC_ERROR) {
+    contract {
+        returns() implies (a is Valid<A> && b is Valid<B> && c is Valid<C> && d is Valid<D> && e is Valid<E>)
+    }
+    ensureAllValidInternal(nonEmptyListOf(a, b, c, d, e), mapAccErrors)
+}
+
+@OptIn(ExperimentalContracts::class)
+suspend inline fun <ERROR, reified A, reified B, reified C, reified D, reified E> EffectScope<Nel<ERROR>>.ensureAllValid(a: ValidatedNel<ERROR, A>, b: ValidatedNel<ERROR, B>, c: ValidatedNel<ERROR, C>, d: ValidatedNel<ERROR, D>, e: ValidatedNel<ERROR, E>) {
+    contract {
+        returns() implies (a is Valid<A> && b is Valid<B> && c is Valid<C> && d is Valid<D> && e is Valid<E>)
+    }
+    ensureAllValidInternal(nonEmptyListOf(a, b, c, d, e), ::identity)
+}

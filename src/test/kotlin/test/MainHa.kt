@@ -70,7 +70,7 @@ private fun internalService() {
 
 private fun endpoint(input: HaPostDto) {
     val haEndDateParser = Parser.from<HaPostDto>()
-        .filter({ it.end != null }) { "End is null" }
+        .filter({ it.end != null }) { "end is null" }
         .wrapTerminalError()
         .andThen(
             OrderedClosedRange.parser<LocalDate>()
@@ -93,8 +93,8 @@ private fun endpoint(input: HaPostDto) {
             NonBlankString.parser widenByProp HaPostDto::text,
             Parser.from<HaPostDto>().tryParsers(
                 parsers = nonEmptyListOf(haEndDateParser, haEndAnzahlParser),
-                errAmbiguous = { TerminalParseError("mehrdeutig welcher Modus für Enddatum") },
-                noValidError = { TerminalParseError("kein Modus für Enddatum identifizierbar") },
+                errAmbiguous = { TerminalParseError("mode for end date is ambiguous") },
+                noValidError = { TerminalParseError("no mode for end date recognized") },
             ),
             ::HaCreateCmd,
         )

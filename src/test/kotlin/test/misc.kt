@@ -8,6 +8,7 @@ import com.sksamuel.tribune.core.strings.notBlank
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -142,7 +143,7 @@ class MiscTests : AnnotationSpec() {
     }
 
     @Test
-    suspend fun `flat zip and accumulate`() {
+    suspend fun `zip and accumulate`() {
         either {
             val a: ValidatedNel<String, String> = "meso".validNel()
             val b: ValidatedNel<String, String> = "merism".validNel()
@@ -158,7 +159,20 @@ class MiscTests : AnnotationSpec() {
     }
 
     @Test
-    suspend fun `double flat zip and accumulate`() {
+    suspend fun `zip or accumulate fail`() {
+        either {
+            val a: ValidatedNel<String, String> = "fromage".validNel()
+            val b: ValidatedNel<String, String> = Invalid("error".nel())
+            ensureAllValid(a, b)
+            a.value + b.value
+        }.apply {
+            shouldBeInstanceOf<Either<Nel<String>, String>>()
+            shouldBe("error".nel().left())
+        }
+    }
+
+    @Test
+    suspend fun `two-level zip and accumulate`() {
         either {
             val a: ValidatedNel<String, String> = "fro".validNel()
             val b: ValidatedNel<String, String> = "ma".validNel()
@@ -176,15 +190,14 @@ class MiscTests : AnnotationSpec() {
     }
 
     @Test
-    suspend fun `flat zip and accumulate fail`() {
-        either {
-            val a: ValidatedNel<String, String> = "fromage".validNel()
-            val b: ValidatedNel<String, String> = Invalid("error".nel())
+    suspend fun `parse map`() {
+        val input = mapOf(
+            "name" to "Bernd",
+            "age" to 42,
+        )
 
-            ensureAllValid(a, b)
-
-            a.value + b.value
-        } shouldBeEqual "error".nel().left()
+        val parser = Parser.fromMap<String, Any?>()
+        //TODO
     }
 
 }
